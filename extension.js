@@ -132,8 +132,16 @@ function activate(context) {
 										if(command.commandType === 'script') {
 											exec(`npm run ${command.command}`);
 										} else if (command.commandType === 'palette') {
-											const executeNext = function executeNext(palette, index) {
-												vscode.commands.executeCommand(palettes[index]).then(() => {
+											const executeNext = function executeNext(palettes, index) {
+												let vscommand = palettes[index];
+												let args = [];
+												if (vscommand.indexOf(':') < 0) {
+													args = [vscommand];
+												} else {
+													args = vscommand.split(':');
+												}
+												vscode.commands.executeCommand.apply(vscode.commands, args).then(() => {
+													//vscode.window.showInformationMessage(`Execution of '${palettes[index]}', arg count: ${args.length}`);
 													index += 1;
 													if(index < palettes.length) {
 														executeNext(palettes, index);
@@ -142,6 +150,7 @@ function activate(context) {
 													vscode.window.showErrorMessage(`Execution of '${command.text}' command has failed: ${err.message}`);
 												});
 											}
+
 											const palettes = command.command.split(',');
 											executeNext(palettes, 0);
 										} else {
